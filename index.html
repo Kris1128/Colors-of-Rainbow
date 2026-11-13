@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌈</text></svg>">
+<title>🌈 彩虹颜色乐园 · 颜色单词游戏合集</title>
+<style>
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; padding:0; }
+body{ font-family:"Comic Sans MS","Chalkboard SE","Baloo 2","PingFang SC","Microsoft YaHei",sans-serif; color:#334155; min-height:100vh; overflow-x:hidden; user-select:none; -webkit-user-select:none; touch-action:manipulation; background:linear-gradient(180deg,#8ed6ff 0%,#c9ecff 45%,#fff6c9 100%); }
+button{ font-family:inherit; }
+.cloudbg{ position:fixed; font-size:64px; opacity:.75; pointer-events:none; z-index:0; animation:drift 16s ease-in-out infinite alternate; }
+@keyframes drift{ from{ transform:translateX(0); } to{ transform:translateX(46px); } }
+#topbar{ position:sticky; top:0; z-index:60; display:none; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; background:rgba(255,255,255,.88); backdrop-filter:blur(6px); box-shadow:0 3px 0 #ffd43b; }
+body.ingame #topbar{ display:flex; }
+.iconbtn{ border:none; background:#fff; border-radius:999px; font-size:19px; padding:8px 16px; cursor:pointer; box-shadow:0 3px 0 #d0d7de; transition:transform .1s; font-weight:bold; color:#334155; }
+.iconbtn:active{ transform:scale(.92); }
+#star-box{ font-size:20px; font-weight:bold; background:#fff7d6; border:3px solid #ffd43b; border-radius:999px; padding:6px 18px; }
+#star-box.bump{ animation:bump .4s; }
+@keyframes bump{ 40%{ transform:scale(1.35) rotate(-6deg); } }
+.screen{ display:none; position:relative; z-index:1; max-width:1000px; margin:0 auto; padding:18px 14px 60px; }
+.screen.active{ display:block; animation:pop .35s ease; }
+@keyframes pop{ from{ transform:scale(.9); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.hero{ text-align:center; padding:26px 10px 8px; }
+.hero h1{ font-size:clamp(28px,6vw,46px); margin:0; letter-spacing:2px; background:linear-gradient(90deg,#ff5252,#ff9800,#ffd43b,#69db7c,#4dabf7,#b197fc,#f783ac); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p{ margin:10px 0 0; font-size:clamp(14px,3vw,18px); color:#5b6b7c; }
+.menu{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-top:22px; }
+.mcard{ background:#fff; border-radius:26px; padding:20px 12px 16px; text-align:center; cursor:pointer; border:4px solid #fff; box-shadow:0 6px 0 #dbe4ee,0 10px 18px rgba(80,110,140,.15); transition:transform .15s; }
+.mcard:hover{ transform:translateY(-6px) rotate(-1deg); }
+.mcard:active{ transform:scale(.95); }
+.mcard .em{ font-size:52px; display:block; }
+.mcard h3{ margin:8px 0 4px; font-size:19px; }
+.mcard p{ margin:0; font-size:13px; color:#7a8a99; }
+.mcard:nth-child(1){ border-color:#ffc9c9; } .mcard:nth-child(2){ border-color:#ffe3a3; } .mcard:nth-child(3){ border-color:#c3fae8; } .mcard:nth-child(4){ border-color:#d0ebff; } .mcard:nth-child(5){ border-color:#e5dbff; } .mcard:nth-child(6){ border-color:#ffd6e8; } .mcard:nth-child(7){ border-color:#ffe8cc; }
+.home-foot{ text-align:center; color:#7a8a99; font-size:13px; margin-top:28px; }
+.gtitle{ text-align:center; font-size:clamp(20px,4.5vw,30px); margin:6px 0 2px; }
+.hint{ text-align:center; color:#7a8a99; font-size:14px; margin:0 0 12px; }
+.prog{ text-align:center; font-weight:bold; color:#f08c00; margin-bottom:10px; font-size:17px; }
+.prompt{ text-align:center; min-height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; }
+.word-big{ font-size:clamp(38px,9vw,60px); font-weight:bold; color:#212529; letter-spacing:2px; text-shadow:0 3px 0 #fff,0 6px 0 rgba(0,0,0,.06); }
+.word-cn{ font-size:19px; color:#8a97a5; background:#fff; padding:2px 16px; border-radius:999px; border:2px dashed #ced4da; }
+.blob{ width:150px; height:150px; border-radius:50%; border:6px solid #fff; box-shadow:inset -10px -12px 0 rgba(0,0,0,.08),0 8px 0 rgba(0,0,0,.06); animation:wob 2.4s ease-in-out infinite; }
+@keyframes wob{ 0%,100%{ transform:rotate(-3deg) scale(1); } 50%{ transform:rotate(3deg) scale(1.05); } }
+.ask{ font-size:20px; font-weight:bold; color:#495057; }
+.opts{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-bottom:10px; }
+.swatch{ width:96px; height:96px; border-radius:50%; border:5px solid #fff; box-shadow:0 6px 0 rgba(0,0,0,.12); cursor:pointer; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; transition:transform .12s; }
+.swatch span{ background:rgba(255,255,255,.93); border-radius:999px; padding:1px 10px; font-size:14px; font-weight:bold; color:#37424e; }
+.swatch.white-sw{ border-color:#adb5bd; }
+.swatch:hover{ transform:scale(1.08); }
+.swatch.right{ animation:good .5s; }
+.swatch.wrong{ animation:shakeg .45s; border-color:#ff6b6b; }
+.wordbtn{ font-size:clamp(20px,4.6vw,28px); font-weight:bold; padding:14px 26px; border-radius:20px; border:none; background:#fff; color:#334155; cursor:pointer; box-shadow:0 5px 0 #dbe4ee; letter-spacing:1px; transition:transform .12s; }
+.wordbtn:hover{ transform:translateY(-3px); }
+.wordbtn.right{ animation:good .5s; outline:4px solid #69db7c; }
+.wordbtn.wrong{ animation:shakeg .45s; outline:4px solid #ff6b6b; }
+@keyframes good{ 30%{ transform:scale(1.18) rotate(3deg); } 60%{ transform:scale(1.08) rotate(-2deg); } }
+.shakeg{ animation:shakeg .45s; }
+@keyframes shakeg{ 20%{ transform:translateX(-8px); } 40%{ transform:translateX(8px); } 60%{ transform:translateX(-6px); } 80%{ transform:translateX(6px); } }
+.speakbtn{ font-size:60px; background:#fff; border:none; border-radius:50%; width:124px; height:124px; cursor:pointer; box-shadow:0 6px 0 #dbe4ee; animation:pulse 1.6s infinite; }
+.speakbtn:active{ transform:scale(.93); }
+@keyframes pulse{ 50%{ transform:scale(1.08); } }
+.memgrid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; max-width:560px; margin:0 auto; }
+.memcard{ aspect-ratio:3/3.6; perspective:700px; cursor:pointer; }
+.flip{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s cubic-bezier(.34,1.4,.64,1); }
+.memcard.open .flip,.memcard.done .flip{ transform:rotateY(180deg); }
+.face{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:18px; display:flex; align-items:center; justify-content:center; }
+.face.front{ background:repeating-linear-gradient(45deg,#74c0fc 0 14px,#a5d8ff 14px 28px); font-size:34px; box-shadow:0 5px 0 #4dabf7; }
+.face.back{ transform:rotateY(180deg); background:#fff; box-shadow:0 5px 0 #dbe4ee; border:3px solid #e9ecef; }
+.face.back b{ font-size:clamp(15px,3.4vw,23px); letter-spacing:1px; }
+.mini{ width:58%; height:58%; border-radius:50%; border:4px solid #fff; box-shadow:0 0 0 2px #ced4da; }
+.memcard.done .face.back{ outline:4px solid #69db7c; background:#f4fce3; }
+#mem-info{ text-align:center; font-weight:bold; color:#f08c00; margin-bottom:12px; font-size:17px; }
+.rainbow-wrap{ background:rgba(255,255,255,.55); border-radius:24px; padding:10px; }
+#rainbow-svg{ width:100%; height:auto; display:block; }
+#rainbow-svg text{ font-family:inherit; font-weight:bold; font-size:19px; fill:#3b4252; paint-order:stroke; stroke:#ffffff; stroke-width:4px; pointer-events:none; }
+.rarc{ stroke:#fff; stroke-width:3; transition:fill .3s; cursor:pointer; }
+#rainbow-palette{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:16px; }
+.rblob{ width:60px; height:60px; border-radius:50%; border:4px solid #fff; box-shadow:0 5px 0 rgba(0,0,0,.15); cursor:grab; touch-action:none; display:flex; align-items:flex-end; justify-content:center; font-size:12px; font-weight:bold; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); padding-bottom:4px; transition:transform .15s; }
+.rblob.white{ color:#666; text-shadow:none; border-color:#adb5bd; }
+.rblob:hover{ transform:scale(1.12); }
+.rblob.dragging{ cursor:grabbing; z-index:100; pointer-events:none; transform:scale(1.15) rotate(8deg); box-shadow:0 12px 18px rgba(0,0,0,.25); }
+.rblob.used{ opacity:.25; pointer-events:none; transform:scale(.8); }
+#ball-info{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:14px; font-weight:bold; font-size:18px; margin-bottom:10px; }
+#ball-info>span{ background:rgba(255,255,255,.8); border-radius:999px; padding:6px 16px; }
+.target-tag{ display:flex; align-items:center; gap:8px; box-shadow:0 4px 0 #dbe4ee; }
+#ball-target{ font-size:20px; letter-spacing:1px; }
+#ball-field{ position:relative; height:56vh; min-height:340px; border-radius:24px; overflow:hidden; background:linear-gradient(180deg,#74c0fc,#d0ebff); box-shadow:inset 0 0 0 6px #fff; }
+.balloon{ position:absolute; width:62px; height:76px; border-radius:50% 50% 48% 48%/56% 56% 44% 44%; cursor:pointer; box-shadow:inset -8px -10px 0 rgba(0,0,0,.08); }
+.balloon::before{ content:""; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); border:6px solid transparent; border-top:9px solid var(--c); }
+.balloon::after{ content:""; position:absolute; left:50%; top:calc(100% + 7px); width:2px; height:26px; background:rgba(70,70,70,.35); }
+.pop{ position:absolute; border:4px solid #fff; border-radius:50%; animation:popring .4s forwards; pointer-events:none; }
+@keyframes popring{ from{ width:10px; height:10px; opacity:1; } to{ width:90px; height:90px; opacity:0; } }
+.paint-wrap{ display:grid; grid-template-columns:1.4fr 1fr; gap:14px; align-items:start; }
+@media(max-width:720px){ .paint-wrap{ grid-template-columns:1fr; } }
+#paint-svg{ width:100%; height:auto; background:#fff; border-radius:22px; box-shadow:0 6px 0 #dbe4ee; touch-action:manipulation; }
+.paint-item{ cursor:pointer; transform-box:fill-box; transform-origin:center; }
+.paint-item [data-part]{ transition:fill .5s; }
+.paint-item.colored{ cursor:default; }
+#paint-palette{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; background:rgba(255,255,255,.7); border-radius:18px; padding:10px; margin-bottom:8px; }
+.psw{ width:40px; height:40px; border-radius:50%; border:3px solid #fff; box-shadow:0 3px 0 rgba(0,0,0,.15); cursor:pointer; transition:transform .12s; }
+.psw.white{ border-color:#adb5bd; }
+.psw:hover{ transform:scale(1.12); }
+.psw.sel{ outline:4px solid #ffd43b; transform:scale(1.18); }
+#paint-tasks{ background:#fff; border-radius:18px; padding:8px 14px; box-shadow:0 5px 0 #dbe4ee; }
+.taskrow{ display:flex; align-items:center; gap:8px; padding:5px 2px; font-size:15px; border-bottom:2px dashed #eef1f4; flex-wrap:wrap; }
+.taskrow:last-child{ border-bottom:none; }
+.taskrow .em{ font-size:22px; }
+.taskrow b{ letter-spacing:.5px; }
+.taskrow .ck{ margin-left:auto; color:#2f9e44; font-weight:bold; opacity:0; }
+.taskrow.done{ color:#adb5bd; }
+.taskrow.done .ck{ opacity:1; }
+#paint-msg{ text-align:center; font-weight:bold; min-height:26px; margin:8px 0; color:#f08c00; font-size:16px; }
+.cf{ position:fixed; top:-24px; z-index:999; pointer-events:none; animation:cfall linear forwards; }
+@keyframes cfall{ to{ transform:translateY(115vh) rotate(720deg); } }
+.overlay{ position:fixed; inset:0; background:rgba(40,60,90,.45); display:none; align-items:center; justify-content:center; z-index:200; backdrop-filter:blur(3px); }
+.overlay.show{ display:flex; }
+.winbox{ background:linear-gradient(180deg,#fff,#fff9db); border-radius:30px; padding:28px 34px; text-align:center; box-shadow:0 12px 0 rgba(0,0,0,.12); animation:pop .4s; max-width:92vw; }
+.win-emoji{ font-size:64px; animation:bounce 1s infinite; }
+@keyframes bounce{ 50%{ transform:translateY(-10px); } }
+.winbox h2{ margin:6px 0; font-size:26px; }
+.winbox p{ margin:4px 0 12px; color:#7a8a99; }
+#win-stars{ font-size:22px; font-weight:bold; color:#f08c00; margin-bottom:14px; }
+.btn{ font-size:19px; font-weight:bold; padding:12px 28px; border:none; border-radius:999px; cursor:pointer; background:linear-gradient(180deg,#ffd43b,#fab005); color:#5c3d00; box-shadow:0 5px 0 #d98a00; margin:4px; transition:transform .1s; }
+.btn:active{ transform:scale(.94); }
+.btn2{ background:linear-gradient(180deg,#a5d8ff,#74c0fc); color:#0b3d66; box-shadow:0 5px 0 #4dabf7; }
+.sbtn{ border:none; background:#e7f5ff; border-radius:999px; font-size:18px; padding:4px 12px; cursor:pointer; box-shadow:0 3px 0 #a5d8ff; }
+@media(max-width:480px){ .memgrid{ gap:8px; } .swatch{ width:78px; height:78px; } .blob{ width:120px; height:120px; } .cloudbg{ font-size:44px; } }
+</style>
+<base target="_blank">
+</head>
+<body>
+<div class="cloudbg" style="top:6%;left:4%">☁️</div>
+<div class="cloudbg" style="top:18%;right:8%;animation-delay:2s">☁️</div>
+<div class="cloudbg" style="top:60%;left:12%;animation-delay:4s">☁️</div>
+
+<header id="topbar">
+  <button class="iconbtn" id="btn-home">🏠 主页</button>
+  <div id="star-box">⭐ <span id="stars">0</span></div>
+  <button class="iconbtn" id="btn-sound">🔊</button>
+</header>
+
+<section id="home" class="screen active">
+  <div class="hero">
+    <h1>🌈 彩虹颜色乐园</h1>
+    <p>和小伙伴们一起玩转 11 个颜色单词！选择一款游戏开始吧～</p>
+  </div>
+  <div class="menu">
+    <div class="mcard" onclick="startPick('w2c')"><span class="em">🔤</span><h3>单词找颜色</h3><p>看单词，点颜色</p></div>
+    <div class="mcard" onclick="startPick('c2w')"><span class="em">🎨</span><h3>颜色找单词</h3><p>看颜色，选单词</p></div>
+    <div class="mcard" onclick="startPick('listen')"><span class="em">👂</span><h3>听音选颜色</h3><p>听一听，点一点</p></div>
+    <div class="mcard" onclick="startMemory()"><span class="em">🃏</span><h3>记忆翻翻看</h3><p>颜色单词配配对</p></div>
+    <div class="mcard" onclick="startRainbow()"><span class="em">🌈</span><h3>彩虹排排队</h3><p>拖一拖，拼彩虹</p></div>
+    <div class="mcard" onclick="startBalloons()"><span class="em">🎈</span><h3>抓气球大赛</h3><p>抓住对的气球</p></div>
+    <div class="mcard" onclick="startPaint()"><span class="em">🖌️</span><h3>小小画家</h3><p>读单词，涂颜色</p></div>
+  </div>
+  <p class="home-foot">适合 3-8 岁小朋友 · 建议家长陪同一起玩</p>
+</section>
+
+<section id="g-w2c" class="screen">
+  <h2 class="gtitle">🔤 单词找颜色</h2>
+  <p class="hint">大声读出单词，点击正确的颜色球！</p>
+  <div class="prog"></div>
+  <div class="prompt"></div>
+  <div class="opts"></div>
+</section>
+
+<section id="g-c2w" class="screen">
+  <h2 class="gtitle">🎨 颜色找单词</h2>
+  <p class="hint">看看这是什么颜色？选出它的英文单词！</p>
+  <div class="prog"></div>
+  <div class="prompt"></div>
+  <div class="opts"></div>
+</section>
+
+<section id="g-listen" class="screen">
+  <h2 class="gtitle">👂 听音选颜色</h2>
+  <p class="hint">点大喇叭听单词，再点正确的颜色球！</p>
+  <div class="prog"></div>
+  <div class="prompt"></div>
+  <div class="opts"></div>
+</section>
+
+<section id="g-mem" class="screen">
+  <h2 class="gtitle">🃏 记忆翻翻看</h2>
+  <p class="hint">翻开卡片，把颜色和它的英文单词配成一对！</p>
+  <div id="mem-info"></div>
+  <div class="memgrid"></div>
+</section>
+
+<section id="g-rain" class="screen">
+  <h2 class="gtitle">🌈 彩虹排排队</h2>
+  <p class="hint">读一读彩虹上的英文单词，把颜色小球拖到正确的位置！</p>
+  <div class="rainbow-wrap"><svg id="rainbow-svg" viewBox="0 0 600 340"></svg></div>
+  <div id="rainbow-palette"></div>
+</section>
+
+<section id="g-ball" class="screen">
+  <h2 class="gtitle">🎈 抓气球大赛</h2>
+  <p class="hint">只抓和目标颜色一样的气球，抓住越多星星越多！</p>
+  <div id="ball-info">
+    <span>⏰ <span id="ball-time">40</span> 秒</span>
+    <span>🎯 抓到 <span id="ball-score">0</span> 个</span>
+    <span class="target-tag">找这个：<b id="ball-target"></b><button class="sbtn" onclick="speak(COLORS[bal.target].en)">🔊</button></span>
+  </div>
+  <div id="ball-field"></div>
+</section>
+
+<section id="g-paint" class="screen">
+  <h2 class="gtitle">🖌️ 小小画家</h2>
+  <p class="hint">先点下面的颜色，再点击对应的图案。看右边清单上的英文单词哦！</p>
+  <div class="paint-wrap">
+    <svg id="paint-svg" viewBox="0 0 800 460">
+      <rect x="0" y="0" width="800" height="460" fill="#bae6fd"/>
+      <circle cx="60" cy="40" r="16" fill="#fff" opacity=".7"/>
+      <circle cx="220" cy="72" r="11" fill="#fff" opacity=".6"/>
+      <circle cx="500" cy="46" r="13" fill="#fff" opacity=".6"/>
+      <path d="M0 350 Q 200 310 420 348 T 800 340 L800 460 L0 460 Z" fill="#86efac"/>
+      <g class="paint-item" data-t="yellow" data-g="sun">
+        <g stroke="#f59e0b" stroke-width="6" stroke-linecap="round">
+          <line x1="90" y1="16" x2="90" y2="32"/><line x1="90" y1="108" x2="90" y2="124"/>
+          <line x1="21" y1="70" x2="37" y2="70"/><line x1="143" y1="70" x2="159" y2="70"/>
+          <line x1="41" y1="21" x2="52" y2="32"/><line x1="128" y1="32" x2="139" y2="21"/>
+          <line x1="41" y1="119" x2="52" y2="108"/><line x1="128" y1="108" x2="139" y2="119"/>
+        </g>
+        <circle cx="90" cy="70" r="30" data-part fill="#eef1f4" stroke="#f59e0b" stroke-width="4"/>
+      </g>
+      <g class="paint-item" data-t="white" data-g="cloud">
+        <ellipse cx="566" cy="66" rx="24" ry="18" data-part fill="#eef1f4" stroke="#94a3b8" stroke-width="4"/>
+        <ellipse cx="600" cy="78" rx="34" ry="22" data-part fill="#eef1f4" stroke="#94a3b8" stroke-width="4"/>
+        <ellipse cx="636" cy="66" rx="26" ry="20" data-part fill="#eef1f4" stroke="#94a3b8" stroke-width="4"/>
+      </g>
+      <g class="paint-item" data-t="blue" data-g="umbrella">
+        <line x1="370" y1="60" x2="370" y2="132" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+        <path d="M310 62 Q370 -6 430 62 Q405 46 385 62 Q370 48 355 62 Q335 46 310 62 Z" data-part fill="#eef1f4" stroke="#64748b" stroke-width="4"/>
+      </g>
+      <g class="paint-item" data-t="purple" data-g="grapes">
+        <line x1="705" y1="28" x2="705" y2="50" stroke="#65a30d" stroke-width="5" stroke-linecap="round"/>
+        <path d="M705 50 Q690 42 684 32" fill="none" stroke="#65a30d" stroke-width="4"/>
+        <circle cx="705" cy="64" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+        <circle cx="683" cy="76" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+        <circle cx="727" cy="76" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+        <circle cx="694" cy="96" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+        <circle cx="716" cy="96" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+        <circle cx="705" cy="116" r="13" data-part fill="#eef1f4" stroke="#7c3aed" stroke-width="3"/>
+      </g>
+      <g class="paint-item" data-t="red" data-g="apple">
+        <line x1="175" y1="352" x2="175" y2="336" stroke="#92400e" stroke-width="5" stroke-linecap="round"/>
+        <ellipse cx="192" cy="336" rx="12" ry="7" fill="#86efac" stroke="#15803d" stroke-width="3" transform="rotate(-24 192 336)"/>
+        <circle cx="175" cy="378" r="30" data-part fill="#eef1f4" stroke="#b91c1c" stroke-width="4"/>
+      </g>
+      <g class="paint-item" data-t="green" data-g="frog">
+        <ellipse cx="335" cy="390" rx="38" ry="26" data-part fill="#eef1f4" stroke="#15803d" stroke-width="4"/>
+        <circle cx="318" cy="362" r="11" data-part fill="#eef1f4" stroke="#15803d" stroke-width="3"/>
+        <circle cx="352" cy="362" r="11" data-part fill="#eef1f4" stroke="#15803d" stroke-width="3"/>
+        <circle cx="318" cy="362" r="4" fill="#1f2937"/><circle cx="352" cy="362" r="4" fill="#1f2937"/>
+        <path d="M322 394 Q335 402 348 394" fill="none" stroke="#166534" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <g class="paint-item" data-t="black" data-g="cat">
+        <path d="M452 398 Q440 382 446 368" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
+        <polygon points="430,320 438,296 449,315" data-part fill="#eef1f4" stroke="#334155" stroke-width="3"/>
+        <polygon points="461,315 472,296 479,320" data-part fill="#eef1f4" stroke="#334155" stroke-width="3"/>
+        <circle cx="454" cy="354" r="28" data-part fill="#eef1f4" stroke="#334155" stroke-width="4"/>
+        <circle cx="444" cy="350" r="4" fill="#1f2937"/><circle cx="464" cy="350" r="4" fill="#1f2937"/>
+        <path d="M448 364 Q454 368 460 364" fill="none" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <ellipse cx="630" cy="412" rx="80" ry="24" fill="#7dd3fc" stroke="#38bdf8" stroke-width="3"/>
+      <g class="paint-item" data-t="orange" data-g="fish">
+        <polygon points="586,412 566,400 566,424" data-part fill="#eef1f4" stroke="#c2410c" stroke-width="3"/>
+        <ellipse cx="606" cy="412" rx="24" ry="14" data-part fill="#eef1f4" stroke="#c2410c" stroke-width="3"/>
+        <circle cx="614" cy="408" r="3.5" fill="#1f2937"/>
+      </g>
+      <g class="paint-item" data-t="pink" data-g="flower">
+        <line x1="100" y1="368" x2="100" y2="430" stroke="#15803d" stroke-width="6" stroke-linecap="round"/>
+        <g data-part fill="#eef1f4" stroke="#be185d" stroke-width="3">
+          <circle cx="100" cy="342" r="12"/><circle cx="82" cy="356" r="12"/><circle cx="118" cy="356" r="12"/><circle cx="89" cy="376" r="12"/><circle cx="111" cy="376" r="12"/>
+        </g>
+        <circle cx="100" cy="360" r="10" fill="#fbbf24" stroke="#d97706" stroke-width="3"/>
+      </g>
+      <g class="paint-item" data-t="brown" data-g="bear">
+        <circle cx="742" cy="330" r="9" data-part fill="#eef1f4" stroke="#78350f" stroke-width="3"/>
+        <circle cx="712" cy="330" r="9" data-part fill="#eef1f4" stroke="#78350f" stroke-width="3"/>
+        <circle cx="727" cy="356" r="26" data-part fill="#eef1f4" stroke="#78350f" stroke-width="4"/>
+        <circle cx="727" cy="362" r="10" fill="#fef3c7" stroke="#78350f" stroke-width="2"/>
+        <circle cx="727" cy="360" r="3.5" fill="#1f2937"/>
+        <circle cx="718" cy="350" r="3" fill="#1f2937"/><circle cx="736" cy="350" r="3" fill="#1f2937"/>
+      </g>
+      <g class="paint-item" data-t="grey" data-g="mouse">
+        <path d="M520 424 Q500 432 492 418" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="528" cy="400" r="6" data-part fill="#eef1f4" stroke="#475569" stroke-width="3"/>
+        <circle cx="552" cy="400" r="6" data-part fill="#eef1f4" stroke="#475569" stroke-width="3"/>
+        <circle cx="540" cy="412" r="15" data-part fill="#eef1f4" stroke="#475569" stroke-width="3"/>
+        <circle cx="535" cy="409" r="2.5" fill="#1f2937"/><circle cx="546" cy="409" r="2.5" fill="#1f2937"/>
+        <circle cx="540" cy="417" r="2.5" fill="#f472b6"/>
+      </g>
+    </svg>
+    <div>
+      <div id="paint-palette"></div>
+      <div id="paint-msg">先选一个颜色吧！</div>
+      <div id="paint-tasks"></div>
+    </div>
+  </div>
+</section>
+
+<div id="win" class="overlay">
+  <div class="winbox">
+    <div class="win-emoji" id="win-emoji">🏆</div>
+    <h2 id="win-msg"></h2>
+    <div id="win-stars"></div>
+    <div>
+      <button class="btn" id="win-again">🔁 再玩一次</button>
+      <button class="btn btn2" id="win-home">🏠 返回主页</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 基础数据与工具 ================= */
+const COLORS=[
+ {en:'red',cn:'红色',hex:'#ef4444'},
+ {en:'orange',cn:'橙色',hex:'#fb923c'},
+ {en:'yellow',cn:'黄色',hex:'#facc15'},
+ {en:'green',cn:'绿色',hex:'#22c55e'},
+ {en:'blue',cn:'蓝色',hex:'#3b82f6'},
+ {en:'purple',cn:'紫色',hex:'#a855f7'},
+ {en:'pink',cn:'粉色',hex:'#ec4899'},
+ {en:'brown',cn:'棕色',hex:'#92400e'},
+ {en:'black',cn:'黑色',hex:'#1f2937'},
+ {en:'white',cn:'白色',hex:'#ffffff'},
+ {en:'grey',cn:'灰色',hex:'#9ca3af'}
+];
+const PRAISE=['涂得真漂亮！🌟','太棒了！👏','你真厉害！🎉','颜色小达人！🏅','好棒呀！🥳','超级漂亮！✨'];
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function hexOf(en){const c=COLORS.find(x=>x.en===en);return c?c.hex:'#cccccc';}
+function cnOf(en){const c=COLORS.find(x=>x.en===en);return c?c.cn:en;}
+
+/* ================= 音效与语音 ================= */
+let AC=null,muted=false;
+function ac(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}if(AC.state==='suspended'){AC.resume();}return AC;}
+function tone(f,d,type,v,when){if(muted)return;d=d||0.12;type=type||'sine';v=v||0.18;when=when||0;try{const a=ac();const o=a.createOscillator();const g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime+when);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+when+d);o.connect(g);g.connect(a.destination);o.start(a.currentTime+when);o.stop(a.currentTime+when+d+0.02);}catch(e){}}
+function playCorrect(){tone(523,0.1);tone(659,0.1,'sine',0.18,0.09);tone(784,0.2,'sine',0.18,0.18);}
+function playWrong(){tone(196,0.2,'sawtooth',0.09);tone(147,0.25,'sawtooth',0.07,0.08);}
+function playStar(){tone(1047,0.09,'triangle',0.15);}
+function speak(t){if(muted||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=0.75;u.pitch=1.05;const vs=speechSynthesis.getVoices();const v=vs.find(x=>/en[-_]US/i.test(x.lang));if(v){u.voice=v;}speechSynthesis.speak(u);}catch(e){}}
+if('speechSynthesis' in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=function(){speechSynthesis.getVoices();};}
+
+/* ================= 彩带庆祝 & 星星 ================= */
+const CF_COLORS=['#ff6b6b','#ffd43b','#69db7c','#4dabf7','#b197fc','#f783ac','#ffa94d'];
+function confetti(n){n=n||40;for(let i=0;i<n;i++){const d=document.createElement('div');d.className='cf';const s=6+Math.random()*8;d.style.width=s+'px';d.style.height=s+'px';d.style.left=(Math.random()*100)+'vw';d.style.background=CF_COLORS[i%CF_COLORS.length];d.style.borderRadius=Math.random()<0.5?'50%':'3px';d.style.animationDuration=(1.2+Math.random()*1.4)+'s';d.style.animationDelay=(Math.random()*0.4)+'s';document.body.appendChild(d);setTimeout(function(){d.remove();},3200);}}
+let stars=0,curEarn=0;
+function addStars(n){stars+=n;curEarn+=n;$('#stars').textContent=stars;const b=$('#star-box');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');playStar();}
+function shake(el){el.classList.remove('shakeg');void el.offsetWidth;el.classList.add('shakeg');setTimeout(function(){el.classList.remove('shakeg');},500);}
+
+/* ================= 屏幕管理 ================= */
+function show(id){$$('.screen').forEach(function(s){s.classList.toggle('active',s.id===id);});document.body.classList.add('ingame');window.scrollTo(0,0);}
+function stopAll(){bal.run=false;if(bal.spawner){clearInterval(bal.spawner);}if(bal.timer){clearInterval(bal.timer);}cancelAnimationFrame(bal.raf);}
+function goHome(){stopAll();$('#win').classList.remove('show');document.body.classList.remove('ingame');show('home');document.body.classList.remove('ingame');}
+$('#btn-home').onclick=goHome;
+$('#btn-sound').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';};
+
+/* ================= 游戏1-3：配对游戏引擎 ================= */
+const pick={mode:'w2c',order:[],i:0};
+function pickScreen(){return pick.mode==='w2c'?'g-w2c':pick.mode==='c2w'?'g-c2w':'g-listen';}
+function startPick(mode){pick.mode=mode;pick.order=shuffle(COLORS.map(function(c,i){return i;}));pick.i=0;curEarn=0;show(pickScreen());nextPick();}
+function nextPick(){
+ const id=pickScreen();
+ if(pick.i>=pick.order.length){
+  const msgs=['太棒了！全部答对！🎉','好厉害，颜色单词都记住啦！🌟','完美！你是颜色小达人！🏆'];
+  winGameRaw(id,msgs[Math.floor(Math.random()*msgs.length)],'🏆');return;
+ }
+ const ci=pick.order[pick.i],c=COLORS[ci];
+ $('#'+id+' .prog').textContent='第 '+(pick.i+1)+' / '+pick.order.length+' 题';
+ const prompt=$('#'+id+' .prompt'),opts=$('#'+id+' .opts');
+ prompt.innerHTML='';opts.innerHTML='';
+ const others=shuffle(COLORS.map(function(x,i){return i;}).filter(function(x){return x!==ci;})).slice(0,3);
+ const set=shuffle([ci].concat(others));
+ if(pick.mode==='c2w'){
+  const blob=document.createElement('div');blob.className='blob';blob.style.background=c.hex;
+  if(c.en==='white'){blob.style.borderColor='#adb5bd';}
+  const ask=document.createElement('div');ask.className='ask';ask.textContent='这是什么颜色？选出单词！';
+  prompt.appendChild(blob);prompt.appendChild(ask);
+  set.forEach(function(i){const b=document.createElement('button');b.className='wordbtn';b.textContent=COLORS[i].en;b.onclick=function(){checkPick(b,i===ci);};opts.appendChild(b);});
+ }else if(pick.mode==='w2c'){
+  const w=document.createElement('div');w.className='word-big';w.textContent=c.en;
+  const cn=document.createElement('div');cn.className='word-cn';cn.textContent=c.cn;
+  prompt.appendChild(w);prompt.appendChild(cn);
+  buildSwatches(set,ci,opts);
+ }else{
+  const btn=document.createElement('button');btn.className='speakbtn';btn.textContent='🔊';
+  btn.onclick=function(){speak(c.en);};prompt.appendChild(btn);
+  buildSwatches(set,ci,opts);
+  setTimeout(function(){speak(c.en);},450);
+ }
+}
+function buildSwatches(set,ci,opts){
+ set.forEach(function(i){const o=COLORS[i];const b=document.createElement('button');
+  b.className='swatch'+(o.en==='white'?' white-sw':'');b.style.background=o.hex;
+  const s=document.createElement('span');s.textContent=o.cn;b.appendChild(s);
+  b.onclick=function(){checkPick(b,i===ci);};opts.appendChild(b);});
+}
+function checkPick(btn,ok){
+ if(ok){btn.classList.add('right');playCorrect();confetti(18);addStars(1);pick.i++;setTimeout(nextPick,700);}
+ else{btn.classList.add('wrong');playWrong();}
+}
+
+/* ================= 游戏4：记忆翻翻看 ================= */
+let mem={first:null,lock:false,pairs:0,moves:0};
+function startMemory(){
+ curEarn=0;mem={first:null,lock:false,pairs:0,moves:0};
+ const chosen=shuffle(COLORS.map(function(c,i){return i;})).slice(0,6);
+ let cards=[];chosen.forEach(function(i){cards.push({k:i,t:'sw'});cards.push({k:i,t:'wd'});});
+ cards=shuffle(cards);
+ const grid=$('#g-mem .memgrid');grid.innerHTML='';
+ cards.forEach(function(c){
+  const d=document.createElement('div');d.className='memcard';d.dataset.k=c.k;d.dataset.t=c.t;
+  const flip=document.createElement('div');flip.className='flip';
+  const front=document.createElement('div');front.className='face front';front.textContent='🌈';
+  const back=document.createElement('div');back.className='face back';
+  if(c.t==='sw'){const m=document.createElement('div');m.className='mini';m.style.background=COLORS[c.k].hex;back.appendChild(m);}
+  else{const b=document.createElement('b');b.textContent=COLORS[c.k].en;back.appendChild(b);}
+  flip.appendChild(front);flip.appendChild(back);d.appendChild(flip);
+  d.onclick=function(){flipCard(d);};grid.appendChild(d);
+ });
+ updateMem();show('g-mem');
+}
+function updateMem(){$('#mem-info').textContent='已配对 '+mem.pairs+' / 6 · 用了 '+mem.moves+' 步';}
+function flipCard(d){
+ if(mem.lock||d.classList.contains('open')||d.classList.contains('done'))return;
+ d.classList.add('open');
+ if(!mem.first){mem.first=d;return;}
+ const a=mem.first,b=d;mem.first=null;mem.moves++;updateMem();
+ if(a.dataset.k===b.dataset.k&&a.dataset.t!==b.dataset.t){
+  mem.lock=true;
+  setTimeout(function(){a.classList.add('done');b.classList.add('done');a.classList.remove('open');b.classList.remove('open');playCorrect();addStars(1);confetti(12);mem.lock=false;mem.pairs++;updateMem();
+   if(mem.pairs>=6){setTimeout(function(){winGameRaw('g-mem','全部配对成功！记忆小达人！','🧠');},600);}
+  },480);
+ }else{
+  mem.lock=true;
+  setTimeout(function(){a.classList.remove('open');b.classList.remove('open');playWrong();mem.lock=false;},850);
+ }
+}
+
+/* ================= 游戏5：彩虹排排队 ================= */
+const RAIN=['red','orange','yellow','green','blue','purple'];
+let rainPlaced=0;
+function arcPath(cx,cy,ro,ri){return 'M '+(cx-ro)+' '+cy+' A '+ro+' '+ro+' 0 0 1 '+(cx+ro)+' '+cy+' L '+(cx+ri)+' '+cy+' A '+ri+' '+ri+' 0 0 0 '+(cx-ri)+' '+cy+' Z';}
+function startRainbow(){
+ curEarn=0;rainPlaced=0;
+ const svg=$('#rainbow-svg');svg.innerHTML='';
+ const ns='http://www.w3.org/2000/svg';
+ const sun=document.createElementNS(ns,'text');
+ sun.setAttribute('x','65');sun.setAttribute('y','332');sun.setAttribute('text-anchor','middle');sun.setAttribute('font-size','58');
+ sun.textContent='🌞';svg.appendChild(sun);
+ RAIN.forEach(function(en,i){
+  const ro=260-i*40,ri=ro-38;
+  const p=document.createElementNS(ns,'path');
+  p.setAttribute('d',arcPath(300,300,ro,ri));
+  p.setAttribute('fill','#e9ecef');
+  p.setAttribute('class','rarc');
+  p.setAttribute('data-en',en);p.id='arc'+i;
+  svg.appendChild(p);
+  const t=document.createElementNS(ns,'text');
+  const tp=document.createElementNS(ns,'textPath');
+  tp.setAttribute('href','#arc'+i);tp.setAttribute('startOffset','56%');tp.textContent=en;
+  t.appendChild(tp);svg.appendChild(t);
+ });
+ const pal=$('#rainbow-palette');pal.innerHTML='';
+ shuffle(RAIN.slice()).forEach(function(en){
+  const b=document.createElement('div');
+  b.className='rblob'+(en==='white'?' white':'');
+  b.style.background=hexOf(en);b.textContent=cnOf(en);
+  dragBlob(b,en);pal.appendChild(b);
+ });
+ show('g-rain');
+}
+function dragBlob(el,en){
+ let sx=0,sy=0,dragging=false;
+ el.addEventListener('pointerdown',function(e){dragging=true;sx=e.clientX;sy=e.clientY;el.classList.add('dragging');try{el.setPointerCapture(e.pointerId);}catch(err){}});
+ el.addEventListener('pointermove',function(e){if(!dragging)return;el.style.transform='translate('+(e.clientX-sx)+'px,'+(e.clientY-sy)+'px)';});
+ el.addEventListener('pointerup',function(e){
+  if(!dragging)return;dragging=false;el.classList.remove('dragging');el.style.transform='';
+  const t=document.elementFromPoint(e.clientX,e.clientY);
+  const arc=t&&t.closest?t.closest('.rarc'):null;
+  if(arc&&!arc.dataset.done){
+   if(arc.dataset.en===en){
+    arc.setAttribute('fill',hexOf(en));arc.dataset.done='1';
+    el.classList.add('used');playCorrect();confetti(14);addStars(1);rainPlaced++;
+    if(rainPlaced===6){setTimeout(function(){winGameRaw('g-rain','彩虹拼好啦！你就是小小彩虹师！','🌈');},700);}
+   }else{shake(el);playWrong();}
+  }
+ });
+}
+
+/* ================= 游戏6：抓气球大赛 ================= */
+const bal={run:false,score:0,time:40,target:0,spawner:null,timer:null,raf:null,items:[]};
+function startBalloons(){
+ stopAll();
+ curEarn=0;bal.run=true;bal.score=0;bal.time=40;bal.items=[];
+ $('#ball-field').innerHTML='';
+ bal.target=Math.floor(Math.random()*COLORS.length);
+ newBallTarget();updateBall();show('g-ball');
+ bal.spawner=setInterval(spawnBall,850);
+ bal.timer=setInterval(function(){bal.time--;updateBall();if(bal.time<=0){endBalloons();}},1000);
+ ballLoop();
+}
+function newBallTarget(){
+ const c=COLORS[bal.target];
+ $('#ball-target').textContent=c.en;
+ $('#ball-target').style.color=c.en==='white'?'#8a97a5':c.hex;
+ speak(c.en);
+}
+function updateBall(){$('#ball-time').textContent=bal.time;$('#ball-score').textContent=bal.score;}
+function spawnBall(){
+ if(!bal.run)return;
+ const f=$('#ball-field');const w=f.clientWidth;
+ const el=document.createElement('div');el.className='balloon';
+ const i=Math.floor(Math.random()*COLORS.length);
+ el.dataset.i=i;
+ const c=COLORS[i];
+ el.style.background=c.hex;el.style.setProperty('--c',c.hex);
+ if(c.en==='white'){el.style.border='3px solid #adb5bd';}
+ const s=46+Math.random()*26;
+ el.style.width=s+'px';el.style.height=(s*1.22)+'px';
+ el.style.left=(Math.random()*(w-s))+'px';
+ el.style.bottom='-120px';
+ el.onclick=function(){hitBall(el,i);};
+ f.appendChild(el);
+ bal.items.push({el:el,y:-120,sp:1.1+Math.random()*1.4+(40-bal.time)/40});
+}
+function ballLoop(){
+ if(!bal.run)return;
+ const f=$('#ball-field');const h=f.clientHeight;
+ bal.items.forEach(function(b){b.y+=b.sp;b.el.style.bottom=b.y+'px';});
+ bal.items=bal.items.filter(function(b){if(b.y>h+140){b.el.remove();return false;}return true;});
+ bal.raf=requestAnimationFrame(ballLoop);
+}
+function hitBall(el,i){
+ if(!bal.run)return;
+ if(i===bal.target){
+  bal.score++;addStars(1);playCorrect();popAt(el);el.remove();
+  bal.items=bal.items.filter(function(b){return b.el!==el;});
+  bal.target=Math.floor(Math.random()*COLORS.length);
+  newBallTarget();updateBall();
+ }else{playWrong();shake(el);}
+}
+function popAt(el){
+ const f=$('#ball-field');
+ const r=el.getBoundingClientRect(),fr=f.getBoundingClientRect();
+ const p=document.createElement('div');p.className='pop';
+ p.style.left=(r.left-fr.left+r.width/2-45)+'px';
+ p.style.top=(r.top-fr.top+r.height/2-45)+'px';
+ p.style.borderColor=COLORS[el.dataset.i].hex;
+ f.appendChild(p);setTimeout(function(){p.remove();},450);
+}
+function endBalloons(){
+ bal.run=false;
+ if(bal.spawner){clearInterval(bal.spawner);}
+ if(bal.timer){clearInterval(bal.timer);}
+ cancelAnimationFrame(bal.raf);
+ winGameRaw('g-ball','时间到！你抓到了 '+bal.score+' 个气球！','🎈');
+}
+
+/* ================= 游戏7：小小画家 ================= */
+let paintSel=null;
+const PAINT=[
+ {g:'sun',em:'🌞',cn:'太阳',en:'sun',t:'yellow'},
+ {g:'cloud',em:'☁️',cn:'云朵',en:'cloud',t:'white'},
+ {g:'umbrella',em:'☂️',cn:'雨伞',en:'umbrella',t:'blue'},
+ {g:'grapes',em:'🍇',cn:'葡萄',en:'grapes',t:'purple'},
+ {g:'apple',em:'🍎',cn:'苹果',en:'apple',t:'red'},
+ {g:'frog',em:'🐸',cn:'青蛙',en:'frog',t:'green'},
+ {g:'cat',em:'🐱',cn:'小猫',en:'cat',t:'black'},
+ {g:'fish',em:'🐟',cn:'小鱼',en:'fish',t:'orange'},
+ {g:'flower',em:'🌸',cn:'小花',en:'flower',t:'pink'},
+ {g:'bear',em:'🐻',cn:'小熊',en:'bear',t:'brown'},
+ {g:'mouse',em:'🐭',cn:'老鼠',en:'mouse',t:'grey'}
+];
+function buildPaintUI(){
+ const pal=$('#paint-palette');pal.innerHTML='';
+ COLORS.forEach(function(c){
+  const b=document.createElement('button');
+  b.className='psw'+(c.en==='white'?' white':'');
+  b.style.background=c.hex;b.title=c.en;
+  b.onclick=function(){
+   paintSel=c.en;
+   $$('.psw').forEach(function(x){x.classList.remove('sel');});
+   b.classList.add('sel');
+   $('#paint-msg').textContent='选好了 '+c.en+' '+c.cn+'！快去找对应的图案吧！';
+   speak(c.en);
+  };
+  pal.appendChild(b);
+ });
+ const tk=$('#paint-tasks');tk.innerHTML='';
+ PAINT.forEach(function(p){
+  const r=document.createElement('div');r.className='taskrow';r.dataset.g=p.g;
+  const e1=document.createElement('span');e1.className='em';e1.textContent=p.em;
+  const s1=document.createElement('span');s1.innerHTML=p.cn+' <b>'+p.en+'</b>';
+  const s2=document.createElement('span');s2.innerHTML='→ '+cnOf(p.t)+' <b>'+p.t+'</b>';
+  const ck=document.createElement('span');ck.className='ck';ck.textContent='✅';
+  r.appendChild(e1);r.appendChild(s1);r.appendChild(s2);r.appendChild(ck);
+  tk.appendChild(r);
+ });
+}
+function startPaint(){
+ curEarn=0;paintSel=null;
+ $$('#paint-svg .paint-item').forEach(function(g){
+  g.classList.remove('colored');
+  g.querySelectorAll('[data-part]').forEach(function(p){p.setAttribute('fill','#eef1f4');});
+ });
+ $$('.psw').forEach(function(x){x.classList.remove('sel');});
+ $$('.taskrow').forEach(function(r){r.classList.remove('done');});
+ $('#paint-msg').textContent='先选一个颜色吧！';
+ show('g-paint');
+}
+$('#paint-svg').addEventListener('click',function(e){
+ const g=e.target.closest('.paint-item');
+ if(!g)return;
+ if(g.classList.contains('colored')){$('#paint-msg').textContent='这个已经涂好啦！';return;}
+ if(!paintSel){$('#paint-msg').textContent='先在下面选一个颜色哦！';playWrong();return;}
+ if(g.dataset.t===paintSel){
+  g.querySelectorAll('[data-part]').forEach(function(p){p.setAttribute('fill',hexOf(paintSel));});
+  g.classList.add('colored');
+  const row=$('.taskrow[data-g="'+g.dataset.g+'"]');if(row){row.classList.add('done');}
+  addStars(1);playCorrect();confetti(15);speak(paintSel);
+  $('#paint-msg').textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  if($$('#paint-svg .paint-item.colored').length===11){
+   setTimeout(function(){winGameRaw('g-paint','哇！整幅画都涂完啦，太漂亮了！','🖼️');},900);
+  }
+ }else{
+  shake(g);playWrong();
+  $('#paint-msg').textContent='再看看清单，它要涂成 '+cnOf(g.dataset.t)+' '+g.dataset.t+' 哦！';
+  speak(g.dataset.t);
+ }
+});
+
+/* ================= 胜利结算 ================= */
+let curGame='';
+const RESTART={
+ 'g-w2c':function(){startPick('w2c');},
+ 'g-c2w':function(){startPick('c2w');},
+ 'g-listen':function(){startPick('listen');},
+ 'g-mem':function(){startMemory();},
+ 'g-rain':function(){startRainbow();},
+ 'g-ball':function(){startBalloons();},
+ 'g-paint':function(){startPaint();}
+};
+function winGameRaw(id,msg,emoji){
+ curGame=id;
+ $('#win-emoji').textContent=emoji||'🏆';
+ $('#win-msg').textContent=msg;
+ $('#win-stars').textContent='本轮获得 '+curEarn+' 颗星 ⭐';
+ $('#win').classList.add('show');
+ confetti(90);playCorrect();setTimeout(playStar,300);
+}
+$('#win-again').onclick=function(){$('#win').classList.remove('show');if(RESTART[curGame]){RESTART[curGame]();}};
+$('#win-home').onclick=function(){$('#win').classList.remove('show');goHome();};
+
+window.addEventListener('load',function(){buildPaintUI();});
+</script>
+</body>
+</html>
